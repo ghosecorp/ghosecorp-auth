@@ -1,3 +1,6 @@
+# ghosecorp-auth
+ghosecorp-auth
+
 # GHOSECORP AUTH SERVICE
 
 A scalable, microservices-based authentication system supporting:
