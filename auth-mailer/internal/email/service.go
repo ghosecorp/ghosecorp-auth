@@ -25,9 +25,9 @@ func NewService(apiKey string, emailURL string) *Service {
 func (s *Service) SendEmail(
 	ctx context.Context,
 	req EmailRequest,
-) (map[string]interface{}, error) {
+) (map[string]any, error) {
 
-	payload := map[string]interface{}{
+	payload := map[string]any{
 		"sender": map[string]string{
 			"name":  req.Sender.Name,
 			"email": req.Sender.Email,
@@ -69,12 +69,21 @@ func (s *Service) SendEmail(
 
 	defer response.Body.Close()
 
-	var result map[string]interface{}
-
-	err = json.NewDecoder(response.Body).Decode(&result)
+	var result map[string]any
+	decodeErr := json.NewDecoder(response.Body).Decode(&result)
 
 	if response.StatusCode >= 400 {
-		return nil, fmt.Errorf("brevo api error")
+		if decodeErr == nil {
+			if msg, ok := result["message"].(string); ok {
+				return nil, fmt.Errorf("brevo api error (status %d): %s", response.StatusCode, msg)
+			}
+			return nil, fmt.Errorf("brevo api error (status %d): %v", response.StatusCode, result)
+		}
+		return nil, fmt.Errorf("brevo api error with status %d", response.StatusCode)
+	}
+
+	if decodeErr != nil {
+		return nil, decodeErr
 	}
 
 	return result, nil

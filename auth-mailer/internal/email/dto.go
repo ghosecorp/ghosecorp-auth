@@ -11,8 +11,8 @@ type ReceiverDetails struct {
 }
 
 type EmailRequest struct {
-	Sender      SenderDetails
-	Receiver    ReceiverDetails
-	Subject     string
-	HTMLContent string
+	Sender      SenderDetails   `json:"sender"`
+	Receiver    ReceiverDetails `json:"receiver"`
+	Subject     string          `json:"subject"`
+	HTMLContent string          `json:"html_content"`
 }

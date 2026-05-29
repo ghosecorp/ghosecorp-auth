@@ -22,11 +22,13 @@ func (h *Handler) SendEmail(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, "invalid json", http.StatusBadRequest)
+		return
 	}
 
 	result, err := h.service.SendEmail(r.Context(), req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
