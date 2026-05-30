@@ -1,6 +1,3 @@
-# ghosecorp-auth
-ghosecorp-auth
-
 # GHOSECORP AUTH SERVICE
 
 A scalable, microservices-based authentication system supporting:
@@ -94,17 +91,32 @@ chmod +x setup_db.sh
 ```bash
 cd auth-api
 go mod tidy
-go run main.go
+go run cmd/server/main.go
 ```
 
 ---
 
 ### Mailer Service
 
+#### 1. Configure Environment Variables
+Create a `.env` file in the `auth-mailer` directory:
+
+```env
+BREVO_API_KEY=your_brevo_api_key
+BREVO_URL=https://api.brevo.com/v3/smtp/email
+```
+
+#### 2. Run the Service
 ```bash
 cd auth-mailer
 go mod tidy
-go run main.go
+go run cmd/server/main.go
+```
+
+#### 3. Test the Mailer
+While the service is running, you can test it from the repository root:
+```bash
+./test-mailer.sh
 ```
 
 ---
