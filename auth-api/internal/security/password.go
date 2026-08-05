@@ -24,3 +24,10 @@ func HashPassword(password string) (string, error) {
 		base64.RawStdEncoding.EncodeToString(hash)
 	), nil
 }
+
+func VerifyPassword(password, encoded string) bool {
+	parts:=strings.Split(encoded, $)
+	if len(parts) != 6 {
+		return false
+	}
+}
