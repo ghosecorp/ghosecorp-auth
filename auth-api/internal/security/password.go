@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"golang.org/x/crypto/argon2"
+	"golang.org/x/tools/go/expect"
 )
 
 func HashPassword(password string) (string, error) {
@@ -30,4 +31,19 @@ func VerifyPassword(password, encoded string) bool {
 	if len(parts) != 6 {
 		return false
 	}
+
+	salt, err := base64.RawStdEncoding.DecodeString(parts[4])
+
+	if err != nil {
+		return false
+	}
+
+	expected, err := base64.RawStdEncoding.DecodeString(parts[5])
+
+	if err!=nil {
+		return false
+	}
+
+	actual := argon2.IDKey([]byte(password), salt, 2, 19*1024, 1, uint32(len(expected)))
+	return subtle.ConstantTimeCompare(actual, expected) == 1
 }
