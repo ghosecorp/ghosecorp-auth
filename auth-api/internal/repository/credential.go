@@ -9,8 +9,8 @@ type CredentialRepository struct {
 	db *sql.DB
 }
 
-func CredentialRepository(db *sql.DB) *CredentialRepository {
-	return *CredentialRepository{db: db}
+func NewCredentialRepository(db *sql.DB) *CredentialRepository {
+	return &CredentialRepository{db: db}
 }
 
 func (r *CredentialRepository) CreateCredential(ctx context.Context, tx *sql.Tx, userID int64, passwordHash string) error {
