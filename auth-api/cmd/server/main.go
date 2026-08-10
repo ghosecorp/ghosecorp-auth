@@ -1,53 +1,60 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"net/http"
+	"database/sql"
+	"log"
+
+	"github.com/ghosecorp/ghosecorp-auth/auth-api/internal/config"
+	"github.com/ghosecorp/ghosecorp-auth/auth-api/internal/handler/httpHandler"
+	"github.com/ghosecorp/ghosecorp-auth/auth-api/internal/repository"
+	"github.com/ghosecorp/ghosecorp-auth/auth-api/internal/usecase"
+	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
 )
 
-var users []User
-
-type User struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-	Age  int    `json:"age"`
-}
-
-// GET /users
-func getUsers(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(users)
-}
-
-// POST /users
-func createUser(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-	var u User
-	err := json.NewDecoder(r.Body).Decode(&u)
-	if err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
-		return
-	}
-	u.ID = len(users) + 1
-	users = append(users, u)
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(u)
-}
-
 func main() {
-	http.HandleFunc("/users", getUsers)
-	http.HandleFunc("/users/create", createUser)
+	cfg := config.Load()
 
-	fmt.Println("Server running on http://localhost:8001")
-	http.ListenAndServe(":8001", nil)
+	db, err := sql.Open("postgres", cfg.DatabaseURL)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer db.Close()
+
+	if err := db.Ping(); err != nil {
+		log.Fatal(err)
+	}
+
+	userRepo := repository.NewUserRepository(db)
+	credentialRepo := repository.NewCredentialRepository(db)
+	sessionRepo := repository.NewSessionRepository(db)
+
+	authCase := usecase.NewAuthUsecase(db, userRepo, credentialRepo, sessionRepo)
+
+	sessionUsecase := usecase.NewSessionUseCase(sessionRepo)
+
+	authHandler := httpHandler.NewAuthHandler(authCase, cfg.CookieSecure)
+	meHandler := httpHandler.NewMeHandler()
+	authMiddleware := httpHandler.AuthMiddleware(sessionUsecase)
+
+	router := gin.Default()
+
+	httpHandler.RegisterRoutes(
+		router,
+		authHandler,
+		meHandler,
+		authMiddleware,
+	)
+
+	log.Println("auth-api running on :" + cfg.Port)
+
+	// if err := router.Run(":", cfg.Port); err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	if err := router.Run(":" + cfg.Port); err != nil {
+		log.Fatal(err)
+	}
 }
