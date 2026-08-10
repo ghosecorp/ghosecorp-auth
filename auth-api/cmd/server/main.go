@@ -9,6 +9,7 @@ import (
 	"github.com/ghosecorp/ghosecorp-auth/auth-api/internal/repository"
 	"github.com/ghosecorp/ghosecorp-auth/auth-api/internal/usecase"
 	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -49,7 +50,11 @@ func main() {
 
 	log.Println("auth-api running on :" + cfg.Port)
 
-	if err := router.Run(":", cfg.Port); err != nil {
+	// if err := router.Run(":", cfg.Port); err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	if err := router.Run(":" + cfg.Port); err != nil {
 		log.Fatal(err)
 	}
 }
