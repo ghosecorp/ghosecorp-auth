@@ -12,6 +12,8 @@ func NewSessionToken() (string, error) {
 	if _, err := rand.Read(raw); err != nil {
 		return "", err
 	}
+
+	return base64.RawStdEncoding.EncodeToString(raw), nil
 }
 
 func HashToken(token string) string {

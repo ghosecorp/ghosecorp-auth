@@ -62,3 +62,5 @@ auth-api/
 ├── go.mod
 ├── go.sum
 └── README.md
+
+psql -h 127.0.0.1 -U adminuser -d ghose_cloud_auth_db -c "\dt"

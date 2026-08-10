@@ -11,12 +11,12 @@ type UserRepository struct {
 	db *sql.DB
 }
 
-type NewUserRepository(db *sql.DB) *UserRepository {
+func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (r *UserRepository) createUser(ctx context.context, tx *sql.Tx, email string) (domain.User, error) {
-	var User domain.user
+func (r *UserRepository) CreateUser(ctx context.Context, tx *sql.Tx, email string) (domain.User, error) {
+	var user domain.User
 
 	query := `
 		INSERT INTO users (email)
@@ -35,7 +35,7 @@ func (r *UserRepository) createUser(ctx context.context, tx *sql.Tx, email strin
 	return user, err
 }
 
-func (r *UserRepository) FindUserByEmail (ctx context.Context, email string) (domain.User, string, error) {
+func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (domain.User, string, error) {
 	var user domain.User
 	var passwordHash string
 
@@ -45,6 +45,7 @@ func (r *UserRepository) FindUserByEmail (ctx context.Context, email string) (do
 		JOIN credentials c ON c.user_id = u.user_id
 		WHERE u.email = $1
 	`
+
 	err := r.db.QueryRowContext(ctx, query, email).Scan(
 		&user.UserID,
 		&user.PublicID,

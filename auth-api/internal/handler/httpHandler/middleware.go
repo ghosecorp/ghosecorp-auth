@@ -1,14 +1,14 @@
-package http
+package httpHandler
 
 import (
 	"net/http"
 
-	"github.com/ghosecorp/ghosecorp-auth/auth-api/internal/repository"
 	"github.com/ghosecorp/ghosecorp-auth/auth-api/internal/security"
+	"github.com/ghosecorp/ghosecorp-auth/auth-api/internal/usecase"
 	"github.com/gin-gonic/gin"
 )
 
-func AuthMiddleware(sessionRepo *repository.SessionRepository) gin.HandlerFunc {
+func AuthMiddleware(sessionUsecase *usecase.SessionUseCase) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token, err := c.Cookie(security.SessionCookieName)
 
@@ -17,10 +17,7 @@ func AuthMiddleware(sessionRepo *repository.SessionRepository) gin.HandlerFunc {
 			return
 		}
 
-		user, err := sessionRepo.FindUserBySessionTokenHash(
-			c.Request.Context(),
-			security.HashToken(token),
-		)
+		user, err := sessionUsecase.GetUserBySessionToken(c.Request.Context(), token)
 
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
